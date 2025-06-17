@@ -43,38 +43,39 @@ interface Property {
   propertyType: "Residential" | "Commercial" | "Agricultural" | "Industrial";
   registrationDate: string;
   lastTransfer: string;
-  status: "Verified" | "Pending" | "Under Review" | "Disputed" | "Transferred";
+  status: "Active" | "Disputed" | "ForSale" | "Sold" | "PendingApproval";
   blockchainHash: string;
   surveyNumber: string;
   marketValue: string;
   encumbrances: string[];
+  metadataCID: string;
 }
 
 const statusConfig = {
-  Verified: {
+  Active: {
     color: "bg-green-100 text-green-800 border-green-200",
     icon: CheckCircle,
     description: "Property verified and registered on blockchain",
   },
-  Pending: {
+  Disputed: {
     color: "bg-yellow-100 text-yellow-800 border-yellow-200",
     icon: Clock,
     description: "Awaiting verification and blockchain registration",
   },
-  "Under Review": {
+  ForSale: {
     color: "bg-blue-100 text-blue-800 border-blue-200",
     icon: Eye,
     description: "Under review by land registration authorities",
   },
-  Disputed: {
+  Sold: {
     color: "bg-red-100 text-red-800 border-red-200",
     icon: AlertTriangle,
     description: "Property ownership or boundaries under dispute",
   },
-  Transferred: {
-    color: "bg-purple-100 text-purple-800 border-purple-200",
-    icon: Shield,
-    description: "Property transferred to new owner",
+  PendingApproval: {
+    color: "bg-red-100 text-red-800 border-red-200",
+    icon: AlertTriangle,
+    description: "Property ownership or boundaries under dispute",
   },
 };
 
@@ -118,6 +119,15 @@ export default function Properties() {
     if (!contract) return;
     try {
       const fetched = await fetchAllLands(contract);
+
+      const statusMap: Record<number, Property["status"]> = {
+        0: "Active",
+        1: "ForSale",
+        2: "PendingApproval",
+        3: "Sold",
+        4: "Disputed",
+      };
+
       const merged: Property[] = fetched.map((landData) => ({
         id: landData.landId.toString(),
         titleNumber: landData.titleNumber || "",
@@ -136,20 +146,14 @@ export default function Properties() {
           : "Residential",
         registrationDate: landData.timestamp || "",
         lastTransfer: "",
-        status: (landData.status === 0
-          ? "Verified"
-          : landData.status === 1
-          ? "Pending"
-          : landData.status === 2
-          ? "Transferred"
-          : landData.status === 3
-          ? "Disputed"
-          : "Verified") as Property["status"],
+        status: statusMap[Number(landData.status)] ?? "Active", // Correct enum match
         blockchainHash: "",
         surveyNumber: "",
         marketValue: landData.priceRM || "",
         encumbrances: [],
+        metadataCID: landData.metadataCID || "",
       }));
+
       setProperties(merged);
 
       const infoMap: Record<
@@ -163,6 +167,7 @@ export default function Properties() {
           console.error(`getSaleInfo failed for id=${p.id}:`, err);
         }
       }
+
       setSaleInfo(infoMap);
       console.log("saleInfo map:", infoMap);
     } catch {
@@ -345,9 +350,9 @@ export default function Properties() {
                 </ul>
               </div>
             )}
-            </div>
           </div>
         </div>
+      </div>
     );
   };
 
@@ -532,24 +537,32 @@ export default function Properties() {
                           </button>
 
                           {/* Approve button, shown if there’s a pending buyer */}
-                          {saleInfo[property.id]?.pendingBuyer && (
-                            <button
-                              className="text-white bg-green-600 hover:bg-green-700 px-2 py-1 rounded inline-flex items-center"
-                              onClick={async () => {
-                                const buyer =
-                                  saleInfo[property.id].pendingBuyer;
-                                const tx = await approvePurchase(
-                                  property.id,
-                                  buyer
-                                );
-                                await tx.wait();
-                                window.location.reload();
-                              }}
-                            >
-                              <Shield className="w-4 h-4 mr-1" />
-                              Approve
-                            </button>
-                          )}
+                          {address?.toLowerCase() ===
+                            property.ownerAddress.toLowerCase() &&
+                            saleInfo[property.id]?.pendingBuyer &&
+                            saleInfo[property.id].pendingBuyer !==
+                              "0x0000000000000000000000000000000000000000" &&
+                            property.status !== "Sold" && (
+                              <button
+                                className="text-white bg-green-600 hover:bg-green-700 px-2 py-1 rounded inline-flex items-center"
+                                onClick={async () => {
+                                  const buyer =
+                                    saleInfo[property.id].pendingBuyer;
+                                  const metadataCID =
+                                    property.metadataCID || ""; // Replace with correct CID
+                                  const tx = await approvePurchase(
+                                    property.id,
+                                    buyer,
+                                    metadataCID
+                                  );
+                                  await tx.wait();
+                                  window.location.reload();
+                                }}
+                              >
+                                <Shield className="w-4 h-4 mr-1" />
+                                Approve
+                              </button>
+                            )}
                         </>
                       ) : (
                         <button
@@ -566,7 +579,7 @@ export default function Properties() {
                         </button>
                       )}
 
-                      {property.status === "Pending" && (
+                      {property.status === "Disputed" && (
                         <button className="text-green-600 hover:text-green-900 inline-flex items-center">
                           <Shield className="w-4 h-4 mr-1" />
                           Verify

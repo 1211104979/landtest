@@ -18,7 +18,8 @@ export interface YourLand {
   geranCid: string;
   geranUrl: string;
   timestamp: string;
-  owner: string;      // ← the wallet public address
+  owner: string;  
+  metadataCID: string;    
 }
 
 /**
@@ -383,6 +384,7 @@ export async function getYourLands(
         geranUrl: "",
         timestamp: "",
         owner: ownerAddr,
+        metadataCID,
       };
     }
 
@@ -408,6 +410,7 @@ export async function getYourLands(
       geranUrl: `https://gateway.lighthouse.storage/ipfs/${geranCid}`,
       timestamp,
       owner: ownerAddr,
+      metadataCID,
     };
   });
 
@@ -467,6 +470,7 @@ export async function fetchAllLands(
         geranUrl: "",
         timestamp: "",
         owner: ownerAddr,
+        metadataCID,
       };
     }
 
@@ -492,6 +496,7 @@ export async function fetchAllLands(
       geranUrl: `https://gateway.lighthouse.storage/ipfs/${geranCid}`,
       timestamp,
       owner: ownerAddr,
+      metadataCID,
     };
   });
 
@@ -548,13 +553,14 @@ export async function requestToBuyLand(
  */
 export async function approvePurchase(
   landId: string,
-  buyerAddress: string
+  buyerAddress: string,
+  newMetadataCID: string
 ): Promise<ethers.TransactionResponse> {
   const ws = await connectAccount();
   if (!ws) throw new Error("MetaMask not connected");
   const { contract } = ws;
 
-  return await contract.transferLandOwnership(landId, buyerAddress);
+  return await contract.transferLandOwnership(landId, buyerAddress, newMetadataCID);
 }
 
 /**
@@ -571,8 +577,7 @@ export async function getSaleInfo(
   if (!ws) throw new Error("MetaMask not connected");
   const { contract } = ws;
 
-  // `salePrice` and `pendingBuyer` must exist on your Solidity
-  const priceWei: bigint = await contract.salePrice(landId);
+  const priceWei: bigint = await contract.landPrices(landId); // Correct name
   const pendingBuyer: string = await contract.pendingBuyer(landId);
   return { priceWei, pendingBuyer };
 }

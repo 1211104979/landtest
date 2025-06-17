@@ -11,7 +11,7 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     // Roles for access control
     enum Role { None, User, Staff }
     // Status of each land parcel
-    enum LandStatus { Active, ForSale, Sold, Disputed }
+    enum LandStatus { Active, ForSale, PendingApproval, Sold, Disputed }
 
     struct Land {
         uint256 landId;
@@ -96,9 +96,11 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     function requestToBuy(uint256 landId) external payable onlyRegisteredUser {
         require(lands[landId].status == LandStatus.ForSale, "Land not for sale");
         require(msg.value == landPrices[landId], "Incorrect payment amount");
+
         pendingBuyer[landId] = msg.sender;
-        lands[landId].status = LandStatus.Sold;
-        emit LandStatusUpdated(landId, LandStatus.Sold);
+        lands[landId].status = LandStatus.PendingApproval;
+
+        emit LandStatusUpdated(landId, LandStatus.PendingApproval);
         emit PurchaseRequested(landId, msg.sender);
     }
 
@@ -135,6 +137,10 @@ contract LandRegistry is ERC721URIStorage, Ownable {
         lands[landId].metadataCID = newMetadataCID;
         _setTokenURI(landId, newMetadataCID);
 
+        // Set status to Sold
+        lands[landId].status = LandStatus.Sold;
+        emit LandStatusUpdated(landId, LandStatus.Sold);
+
         // Capture price and reset sale state
         uint256 price = landPrices[landId];
         pendingBuyer[landId] = address(0);
@@ -145,6 +151,7 @@ contract LandRegistry is ERC721URIStorage, Ownable {
 
         emit LandOwnershipTransferred(landId, newOwner);
     }
+
 
     /// @notice Return token URI pointing to IPFS CID
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
