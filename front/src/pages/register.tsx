@@ -431,15 +431,6 @@ const RegistrationPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Office Address */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <MapPin className="w-5 h-5 mr-2 text-red-600" />
-              Home Address
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-          </div>
-
           {/* Security Notice */}
           <div className="mb-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
             <div className="flex items-start">

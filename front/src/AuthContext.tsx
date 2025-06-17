@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { getUserMetadata } from './lib/contracts'
 
+
 interface AuthContextType {
   address: string | null
   userName: string | null   // 「john doe」 のように firstName + lastName を入れる

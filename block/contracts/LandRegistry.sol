@@ -11,13 +11,15 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     // Roles for access control
     enum Role { None, User, Staff }
     // Status of each land parcel
-    enum LandStatus { Active, ForSale, PendingApproval, Sold, Disputed }
+    enum LandStatus { Active, ForSale, Pending_Approval, Sold, Disputed }
 
     struct Land {
         uint256 landId;
         LandStatus status;
         string metadataCID;
     }
+
+    // string[] private _listofPublicCIDs = new string[](0); 
 
     uint256 private _tokenIdCounter = 1;
 
@@ -26,6 +28,7 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     mapping(address => Role) public roles;
     mapping(uint256 => Land) public lands;
     mapping(address => uint256[]) public ownerToLandIds;
+    mapping(uint256 => string) public landToPublicCID;
 
     // --- New mappings for sale workflow ---
     mapping(uint256 => uint256) public landPrices;    // listing price in wei
@@ -44,6 +47,14 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     modifier onlyRegisteredUser() {
         require(roles[msg.sender] == Role.User, "Only registered users permitted");
         _;
+    }
+
+    function addPublicCID(uint256 landId, string memory cid) internal {
+        landToPublicCID[landId] = cid;
+    }
+
+    function getPublicCID(uint256 landId) internal view returns (string memory) {
+        return landToPublicCID[landId];
     }
 
     /// @notice Register a new user with off-chain metadata CID
@@ -68,6 +79,7 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     function registerLand(
         address to,
         string memory metadataCID,
+        string memory publicCID,
         uint256 priceWei
     ) external onlyRegisteredUser {
         uint256 newId = _tokenIdCounter++;
@@ -76,6 +88,7 @@ contract LandRegistry is ERC721URIStorage, Ownable {
         // Initialize land record as ForSale
         lands[newId] = Land(newId, LandStatus.ForSale, metadataCID);
         ownerToLandIds[to].push(newId);
+        addPublicCID(newId, publicCID);
         emit LandRegistered(newId, to, metadataCID);
 
         // Set listing price and emit listing event
@@ -98,9 +111,9 @@ contract LandRegistry is ERC721URIStorage, Ownable {
         require(msg.value == landPrices[landId], "Incorrect payment amount");
 
         pendingBuyer[landId] = msg.sender;
-        lands[landId].status = LandStatus.PendingApproval;
+        lands[landId].status = LandStatus.Pending_Approval;
 
-        emit LandStatusUpdated(landId, LandStatus.PendingApproval);
+        emit LandStatusUpdated(landId, LandStatus.Pending_Approval);
         emit PurchaseRequested(landId, msg.sender);
     }
 
@@ -119,8 +132,8 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     /// @notice Approve sale, transfer ownership, update metadata, and release funds
     function transferLandOwnership(
         uint256 landId,
-        address newOwner,
-        string calldata newMetadataCID
+        address newOwner
+        // string calldata newMetadataCID
     ) external onlyRegisteredUser {
         address seller = ownerOf(landId);
         require(seller == msg.sender, "Only owner can approve transfer");
@@ -134,8 +147,8 @@ contract LandRegistry is ERC721URIStorage, Ownable {
         _transfer(seller, newOwner, landId);
 
         // Update metadata CID
-        lands[landId].metadataCID = newMetadataCID;
-        _setTokenURI(landId, newMetadataCID);
+        // lands[landId].metadataCID = newMetadataCID;
+        // _setTokenURI(landId, newMetadataCID);
 
         // Set status to Sold
         lands[landId].status = LandStatus.Sold;
@@ -169,9 +182,10 @@ contract LandRegistry is ERC721URIStorage, Ownable {
     }
 
     /// @notice Fetch land data and current owner
-    function getLand(uint256 landId) external view returns (Land memory land, address owner) {
+    function getLand(uint256 landId) external view returns (Land memory land, address owner, string memory publicCID) {
         require(_existsToken(landId), "Land does not exist");
-        return (lands[landId], ownerOf(landId));
+        return (lands[landId], ownerOf(landId), getPublicCID(landId));
+
     }
 
     /// @notice List all land IDs owned by `owner`

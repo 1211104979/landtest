@@ -24,9 +24,10 @@ import {
   requestToBuyLand,
   approvePurchase,
   getSaleInfo,
+  handleViewGrant
 } from "../../lib/contracts";
 // ABI ファイルと AuthContext もインポート
-import LandRegistryABI from "../../abi/LandRegistry.json";
+import LandRegistryABI from "../../../../block/artifacts/contracts/LandRegistry.sol/LandRegistry.json";
 import { useAuth } from "../../AuthContext";
 
 // .env からコントラクトアドレスを読み込む
@@ -92,6 +93,12 @@ export default function Properties() {
   const [saleInfo, setSaleInfo] = useState<
     Record<string, { priceWei: bigint; pendingBuyer: string }>
   >({});
+
+
+  const [isGrantOpen, setIsGrantOpen] = useState(false);
+  const [grantUrl, setGrantUrl] = useState<string>("");
+
+
 
   // 全土地情報を保持する state
   const [properties, setProperties] = useState<Property[]>([]);
@@ -350,6 +357,26 @@ export default function Properties() {
                 </ul>
               </div>
             )}
+
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            onClick={async () => {
+              try {
+                // call your imported helper
+                const url = await handleViewGrant(property.metadataCID);
+                // store the blob‐URL in state
+                setGrantUrl(url);
+                // show the PDF overlay
+                setIsGrantOpen(true);
+              } catch (err) {
+                console.error("failed to load grant PDF:", err);
+                alert("Could not load the land grant PDF.");
+              }
+            }}
+          >
+            View Land Grant
+          </button>
+
           </div>
         </div>
       </div>
@@ -601,6 +628,25 @@ export default function Properties() {
           onClose={() => setSelectedProperty(null)}
         />
       )}
+
+      {isGrantOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg overflow-hidden w-full max-w-lg relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+              onClick={() => setIsGrantOpen(false)}
+            >
+              ×
+            </button>
+            <iframe
+              src={grantUrl}
+              className="w-full h-[80vh] border-0"
+              title="Land Grant PDF"
+            />
+          </div>
+        </div>
+      )}
+
       {/* BuyLandModal を画面にレンダー */}
       <BuyLandModal
         isOpen={isBuyModalOpen}
