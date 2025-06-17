@@ -46,7 +46,6 @@ export default function Navbar({ userRole }: NavbarProps) {
     { name: 'Property', path: '/staff/properties' },
   ]
   const userLinks = [
-    { name: 'Dashboard', path: '/user/dashboard' },
     { name: 'Transaction', path: '/user/transactions' },
     { name: 'Property', path: '/user/properties' },
   ]

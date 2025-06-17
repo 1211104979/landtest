@@ -10,6 +10,7 @@ import { useState } from "react";
 import type { ChangeEvent } from "react";
 import {
   Globe,
+  Mail,
   Lock,
   Eye,
   EyeOff,
@@ -22,8 +23,9 @@ import {
 import { SiweMessage } from "siwe";
 import { ethers } from "ethers";
 import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router-dom";
 // Type definitions
-type LoginMethod = "wallet";
+type LoginMethod = "email" | "wallet";
 type WalletStatus = "disconnected" | "connecting" | "connected" | "error";
 
 interface FormData {
@@ -45,12 +47,13 @@ export default function LoginPage() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [walletStatus, setWalletStatus] =
     useState<WalletStatus>("disconnected");
   const [errors, setErrors] = useState<Errors>({});
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const { login } = useAuth();
+  const navigate = useNavigate();
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -59,6 +62,52 @@ export default function LoginPage() {
     }
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: Errors = {};
+    if (loginMethod === "email") {
+      if (!formData.email) {
+        newErrors.email = "Email is required";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Please enter a valid email address";
+      }
+      if (!formData.password) {
+        newErrors.password = "Password is required";
+      } else if (formData.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters";
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEmailLogin = async () => {
+    if (!validateForm()) return;
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Email login successful", formData);
+    } catch {
+      setErrors({ general: "Login failed. Please check your credentials." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * connectMetaMask:
+   *  1) window.ethereum.request({ method: 'eth_requestAccounts' }) で接続
+   *  2) 接続に成功したら walletStatus='connected'
+   *  3) そのまま SIWE を試みるが、SIWE 部分は try/catch で囲い、
+   *     もしエラーが起きても「接続」は維持する
+   */
+  /**
+   * connectMetaMask:
+   *  1) ウォレット接続(eth_requestAccounts) を行い、チェックサム付きアドレスを取得
+   *  2) AuthContext.login(userAddress) で address を保存
+   *  3) walletStatus を 'connected' にして UI 切り替え
+   *  4) SIWE メッセージの署名を試みる (失敗しても接続は維持)
+   *  5) 成功時に '/user/dashboard' へ遷移
+   */
   const connectMetaMask = async () => {
     setWalletStatus("connecting");
     setErrors({});
@@ -181,124 +230,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Login Methods Tabs */}
-        <div className="bg-white/10 p-1 rounded-xl mb-6">
-          <div className="grid grid-cols-2 gap-1">
-            <button
-              onClick={() => setLoginMethod("wallet")}
-              className={`py-3 px-4 rounded-lg font-medium transition-all ${
-                loginMethod === "wallet"
-                  ? "bg-white text-blue-900 shadow-sm"
-                  : "text-white hover:bg-white/10"
-              }`}
-            >
-              <Wallet className="w-4 h-4 inline mr-2" />
-              Wallet
-            </button>
-          </div>
-        </div>
-
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          {loginMethod === "wallet" ? (
-            <div className="space-y-6">
-              {/* Email Field */}
-              <div>
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {errors.email}
-                  </p>
-                )}
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                      errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {errors.password}
-                  </p>
-                )}
-              </div>
-
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-600">
-                    Remember me
-                  </span>
-                </label>
-                <a
-                  href="#"
-                  className="text-sm text-blue-600 hover:text-blue-500"
-                >
-                  Forgot password?
-                </a>
-              </div>
-
-              {/* General Error */}
-              {errors.general && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600 flex items-center">
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    {errors.general}
-                  </p>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button>
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Signing In...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </div>
-          ) : (
-            // Wallet Login
             <div className="space-y-6">
               <div className="text-center">
                 <Wallet className="w-16 h-16 text-blue-600 mx-auto mb-4" />
@@ -378,7 +311,6 @@ export default function LoginPage() {
                 </p>
               </div>
             </div>
-          )}
         </div>
 
         {/* Footer */}

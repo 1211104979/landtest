@@ -1,37 +1,6 @@
 import { Users, GraduationCap, Code, Blocks, Globe, Award, BookOpen, Lightbulb } from 'lucide-react';
 
 export default function About() {
-  const students = [
-    {
-      name: "Ahmad Haziq bin Rahman",
-      id: "1201203456",
-      role: "Lead Developer & Smart Contract Architect",
-      specialty: "Blockchain Development, Solidity Programming",
-      avatar: "AH"
-    },
-    {
-      name: "Lim Wei Jie",
-      id: "1201203457", 
-      role: "Frontend Developer & UI/UX Designer",
-      specialty: "React.js, TypeScript, User Interface Design",
-      avatar: "LW"
-    },
-    {
-      name: "Priya Devi d/o Suresh",
-      id: "1201203458",
-      role: "Backend Developer & Database Architect", 
-      specialty: "Node.js, Database Design, API Development",
-      avatar: "PD"
-    },
-    {
-      name: "Muhammad Faiz bin Ismail",
-      id: "1201203459",
-      role: "System Integration & Testing Lead",
-      specialty: "System Testing, DevOps, Quality Assurance",
-      avatar: "MF"
-    }
-  ];
-
   const technologies = [
     { name: "React.js", description: "Frontend user interface framework" },
     { name: "TypeScript", description: "Type-safe JavaScript development" },
@@ -151,40 +120,6 @@ export default function About() {
                 <p className="text-red-100">2024/2025</p>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Team Section */}
-        <section className="mb-16">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-4">
-              <Users className="w-8 h-8 text-blue-600 mr-3" />
-              <h2 className="text-3xl font-bold text-gray-800">Our Development Team</h2>
-            </div>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Meet the four dedicated MMU students who brought this blockchain land registration system to life
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {students.map((student, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-3">
-                    {student.avatar}
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-1">{student.name}</h3>
-                  <p className="text-sm text-gray-500 mb-2">ID: {student.id}</p>
-                  <p className="text-sm font-medium text-blue-600 mb-3">{student.role}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 text-center">
-                    <span className="font-medium">Specialty:</span><br />
-                    {student.specialty}
-                  </p>
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 

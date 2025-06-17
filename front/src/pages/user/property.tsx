@@ -289,29 +289,12 @@ export default function Properties() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Location
-                  </label>
-                  <p className="text-gray-800">{property.location || "—"}</p>
-                  <p className="text-sm text-gray-600">
-                    {property.coordinates || "—"}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Area
                   </label>
                   <p className="text-gray-800">{property.area || "—"}</p>
                 </div>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Survey Number
-                  </label>
-                  <p className="text-gray-800 font-mono">
-                    {property.surveyNumber || "—"}
-                  </p>
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
                     Market Value
@@ -327,18 +310,6 @@ export default function Properties() {
                   <p className="text-gray-800">
                     {property.registrationDate
                       ? new Date(property.registrationDate).toLocaleDateString(
-                          "en-MY"
-                        )
-                      : "—"}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Last Transfer
-                  </label>
-                  <p className="text-gray-800">
-                    {property.lastTransfer
-                      ? new Date(property.lastTransfer).toLocaleDateString(
                           "en-MY"
                         )
                       : "—"}
@@ -375,65 +346,9 @@ export default function Properties() {
                 </ul>
               </div>
             )}
-
-            {/* アクションボタン */}
-            <div className="flex space-x-3 pt-4 border-t border-gray-200 px-6 pb-6">
-              {address?.toLowerCase() ===
-              property.ownerAddress.toLowerCase() ? (
-                <>
-                  {/* Owner sees Edit */}
-                  <button className="text-indigo-600 hover:text-indigo-900 inline-flex items-center">
-                    <Edit3 className="w-4 h-4 mr-1" />
-                    Edit
-                  </button>
-
-                  {/* …and, if there’s a pending buyer, also see Approve */}
-                  {saleInfo[property.id]?.pendingBuyer &&
-                    saleInfo[property.id].pendingBuyer !== ZeroAddress && (
-                      <button
-                        className="text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded inline-flex items-center"
-                        onClick={async () => {
-                          const buyer = saleInfo[property.id].pendingBuyer;
-                          const tx = await approvePurchase(property.id, buyer);
-                          await tx.wait();
-                          // reload or refetch
-                          window.location.reload();
-                        }}
-                      >
-                        <Shield className="w-4 h-4 mr-1" />
-                        Approve
-                      </button>
-                    )}
-                </>
-              ) : (
-                <button
-                  onClick={() => {
-                    setSelectedBuyLandId(property.id);
-                    setSelectedBuyPrice(property.marketValue);
-                    setIsBuyModalOpen(true);
-                    setSelectedProperty(null); // closes the details modal
-                  }}
-                  className="text-green-600 hover:text-green-900 inline-flex items-center"
-                >
-                  <ShoppingCart className="w-4 h-4 mr-1" />
-                  Buy
-                </button>
-              )}
-
-              {property.status === "Pending" && (
-                <button className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span>Verify & Register</span>
-                </button>
-              )}
-
-              <button className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
-                Download Certificate
-              </button>
             </div>
           </div>
         </div>
-      </div>
     );
   };
 
@@ -523,9 +438,6 @@ export default function Properties() {
                   Owner Information
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location & Area
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -575,15 +487,6 @@ export default function Properties() {
                       </div>
                       <div className="text-sm text-gray-500 max-w-xs truncate">
                         {property.ownerAddress || "—"}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate">
-                        {property.location || "—"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {property.area || "—"}
                       </div>
                     </td>
 

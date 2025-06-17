@@ -19,7 +19,6 @@ export default function AddLandModal({
   // ■ フォーム項目の state
   const [titleNumber, setTitleNumber] = useState("");
   const [landType, setLandType] = useState(""); // 例: "Freehold" or "Leasehold"
-  const [nric, setNric] = useState("");
   const [priceRM, setPriceRM] = useState("");
   const [landFile, setLandFile] = useState<File | null>(null);
 
@@ -31,7 +30,6 @@ export default function AddLandModal({
     if (isOpen) {
       setTitleNumber("");
       setLandType("");
-      setNric("");
       setPriceRM("");
       setLandFile(null);
       setIsLoading(false);
@@ -50,11 +48,10 @@ export default function AddLandModal({
     if (
       !titleNumber.trim() ||
       !landType ||
-      !nric.trim() ||
       !priceRM.trim() ||
       !landFile
     ) {
-      alert("すべての項目（Title, Type, NRIC, Price, Geran ファイル）を入力してください。");
+      alert("Please fill in（Title, Type, NRIC, Price, Geran File）");
       return;
     }
 
@@ -66,19 +63,18 @@ export default function AddLandModal({
       const tx = await listingLand(
         titleNumber.trim(),
         landType,
-        nric.trim(),
         priceRM.trim(),
         landFile,
         userName || ""
       );
-      console.log("▶ トランザクションハッシュ:", tx.hash);
+      console.log("▶ Transaction Hash:", tx.hash);
 
       await tx.wait();
-      alert("✅ 土地のリスティング登録が完了しました。");
+      alert("✅ Land Successfully registered");
       onClose();
     } catch (err: any) {
       console.error("listingLand エラー:", err);
-      alert("❌ 土地登録中にエラーが発生しました: " + (err.message || err));
+      alert("❌ AnError Occur During Registration: " + (err.message || err));
     } finally {
       setIsLoading(false);
     }
@@ -165,21 +161,6 @@ export default function AddLandModal({
                     />
                   </div>
 
-                  {/* 4. NRIC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      NRIC
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="ex: 800101-14-5678"
-                      value={nric}
-                      onChange={(e) => setNric(e.target.value)}
-                      disabled={isLoading}
-                      className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
                   {/* 5. Price (RM) */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -250,7 +231,6 @@ export default function AddLandModal({
                       isLoading ||
                       !titleNumber.trim() ||
                       !landType ||
-                      !nric.trim() ||
                       !priceRM.trim() ||
                       !landFile
                     }
