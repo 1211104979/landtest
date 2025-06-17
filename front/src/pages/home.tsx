@@ -6,7 +6,7 @@ import {
   Globe,
   CheckCircle,
   BarChart3,
-  ArrowRight,
+
 } from "lucide-react";
 
 export default function LandManagementDApp() {

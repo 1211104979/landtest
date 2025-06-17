@@ -28,7 +28,6 @@ import {
 // ABI ファイルと AuthContext もインポート
 import LandRegistryABI from "../../abi/LandRegistry.json";
 import { useAuth } from "../../AuthContext";
-import { ZeroAddress } from "ethers";
 
 // .env からコントラクトアドレスを読み込む
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;

@@ -1,5 +1,5 @@
 // src/components/Navbar.tsx
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Globe, Menu, X, User, LogOut, ChevronDown, Wallet } from 'lucide-react'
 import { useAuth } from '../AuthContext'

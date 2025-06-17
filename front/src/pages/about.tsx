@@ -1,32 +1,6 @@
-import { Users, GraduationCap, Code, Blocks, Globe, Award, BookOpen, Lightbulb } from 'lucide-react';
+import { GraduationCap, Globe, BookOpen, Lightbulb } from 'lucide-react';
 
 export default function About() {
-  const technologies = [
-    { name: "React.js", description: "Frontend user interface framework" },
-    { name: "TypeScript", description: "Type-safe JavaScript development" },
-    { name: "Solidity", description: "Smart contract programming language" },
-    { name: "Ethereum", description: "Blockchain platform for smart contracts" },
-    { name: "Web3.js", description: "Ethereum JavaScript API" },
-    { name: "Tailwind CSS", description: "Utility-first CSS framework" }
-  ];
-
-  const features = [
-    {
-      icon: Globe,
-      title: "Decentralized Land Registry",
-      description: "Immutable property records stored on blockchain"
-    },
-    {
-      icon: Blocks,
-      title: "Smart Contract Integration",
-      description: "Automated property verification and transfer processes"
-    },
-    {
-      icon: Award,
-      title: "Government-Grade Security",
-      description: "Enterprise-level security for sensitive land data"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">

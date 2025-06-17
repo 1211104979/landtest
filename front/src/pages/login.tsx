@@ -7,31 +7,20 @@ import { Buffer } from "buffer";
 (window as any).Buffer = Buffer;
 
 import { useState } from "react";
-import type { ChangeEvent } from "react";
 import {
   Globe,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
   Shield,
   AlertCircle,
   CheckCircle,
   Wallet,
-  ArrowRight,
 } from "lucide-react";
 import { SiweMessage } from "siwe";
 import { ethers } from "ethers";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
-// Type definitions
-type LoginMethod = "email" | "wallet";
+
 type WalletStatus = "disconnected" | "connecting" | "connected" | "error";
 
-interface FormData {
-  email: string;
-  password: string;
-}
 
 interface Errors {
   email?: string;
@@ -41,57 +30,12 @@ interface Errors {
 }
 
 export default function LoginPage() {
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>("wallet");
-  const [formData, setFormData] = useState<FormData>({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [walletStatus, setWalletStatus] =
     useState<WalletStatus>("disconnected");
   const [errors, setErrors] = useState<Errors>({});
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof Errors]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Errors = {};
-    if (loginMethod === "email") {
-      if (!formData.email) {
-        newErrors.email = "Email is required";
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = "Please enter a valid email address";
-      }
-      if (!formData.password) {
-        newErrors.password = "Password is required";
-      } else if (formData.password.length < 8) {
-        newErrors.password = "Password must be at least 8 characters";
-      }
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleEmailLogin = async () => {
-    if (!validateForm()) return;
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Email login successful", formData);
-    } catch {
-      setErrors({ general: "Login failed. Please check your credentials." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   /**
    * connectMetaMask:
@@ -171,6 +115,7 @@ export default function LoginPage() {
       setWalletStatus("connected");
       // STEP4: ログイン後にダッシュボードへ遷移
       //navigate('/user/dashboard')
+      navigate('/user/properties');
     } catch (error: any) {
       console.error("connectMetaMask error:", error);
       setWalletStatus("error");
